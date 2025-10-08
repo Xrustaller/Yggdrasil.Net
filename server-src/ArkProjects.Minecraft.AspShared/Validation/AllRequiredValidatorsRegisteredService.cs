@@ -17,25 +17,25 @@ public class AllRequiredValidatorsRegisteredService
 
     public IReadOnlyList<ControllerActionValidationResult> CheckControllersParams(params Assembly[] skipAssemblies)
     {
-        var actionDescriptors = _services.GetRequiredService<IActionDescriptorCollectionProvider>().ActionDescriptors;
-        var controllerDescriptors = actionDescriptors.Items
+        ActionDescriptorCollection actionDescriptors = _services.GetRequiredService<IActionDescriptorCollectionProvider>().ActionDescriptors;
+        ControllerActionDescriptor[] controllerDescriptors = actionDescriptors.Items
             .OfType<ControllerActionDescriptor>()
             .ToArray();
 
-        var results = new List<ControllerActionValidationResult>();
-        foreach (var descriptor in controllerDescriptors)
+        List<ControllerActionValidationResult> results = new();
+        foreach (ControllerActionDescriptor descriptor in controllerDescriptors)
         {
-            var paramResults = new List<ControllerActionValidationResult.ArgumentValidationInfo>();
+            List<ControllerActionValidationResult.ArgumentValidationInfo> paramResults = new();
 
-            var actionParams = descriptor.Parameters
+            ControllerParameterDescriptor[] actionParams = descriptor.Parameters
                 .Where(x => x.BindingInfo?.BindingSource?.IsFromRequest == true)
                 .Cast<ControllerParameterDescriptor>()
                 .ToArray();
-            foreach (var param in actionParams)
+            foreach (ControllerParameterDescriptor param in actionParams)
             {
-                var info = new ControllerActionValidationResult.ArgumentValidationInfo() { ParameterInfo = param.ParameterInfo, };
+                ControllerActionValidationResult.ArgumentValidationInfo info = new() { ParameterInfo = param.ParameterInfo };
                 paramResults.Add(info);
-                var skipAttr = param.ParameterInfo.GetCustomAttribute<SkipValidatorsCheckAttribute>();
+                SkipValidatorsCheckAttribute? skipAttr = param.ParameterInfo.GetCustomAttribute<SkipValidatorsCheckAttribute>();
                 if (skipAttr != null)
                 {
                     info.SkipType = ControllerActionValidationResult.ValidationSkipType.Attribute;
@@ -43,7 +43,7 @@ public class AllRequiredValidatorsRegisteredService
                     continue;
                 }
 
-                var type = Nullable.GetUnderlyingType(param.ParameterType) ?? param.ParameterType;
+                Type type = Nullable.GetUnderlyingType(param.ParameterType) ?? param.ParameterType;
                 if (skipAssemblies.Any(x => x == type.Assembly))
                 {
                     info.SkipType = ControllerActionValidationResult.ValidationSkipType.Assembly;
@@ -51,9 +51,9 @@ public class AllRequiredValidatorsRegisteredService
                     continue;
                 }
 
-                var validatorRequired = (type.IsClass || type.IsValueType) &&
-                                        !type.IsPrimitive &&
-                                        !type.Namespace!.StartsWith("System.");
+                bool validatorRequired = (type.IsClass || type.IsValueType) &&
+                                         !type.IsPrimitive &&
+                                         !type.Namespace!.StartsWith("System.");
                 if (!validatorRequired)
                 {
                     info.SkipType = ControllerActionValidationResult.ValidationSkipType.MemberType;
@@ -61,25 +61,23 @@ public class AllRequiredValidatorsRegisteredService
                     continue;
                 }
 
-                var validatorType = typeof(IValidator<>).MakeGenericType(type);
-                var validator = _services.GetService(validatorType);
+                Type validatorType = typeof(IValidator<>).MakeGenericType(type);
+                object? validator = _services.GetService(validatorType);
                 info.ValidatorFound = validator != null;
             }
 
-            results.Add(new ControllerActionValidationResult()
+            results.Add(new ControllerActionValidationResult
             {
                 Arguments = paramResults,
                 ControllerName = descriptor.ControllerName,
-                ActionName = descriptor.ActionName,
+                ActionName = descriptor.ActionName
             });
         }
 
         if (results
             .SelectMany(x => x.Arguments)
             .Any(x => x is { SkipType: ControllerActionValidationResult.ValidationSkipType.No, ValidatorFound: false }))
-        {
             throw new HaveMissedValidatorsException(results);
-        }
 
         return results;
     }

@@ -1,18 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 public class RefreshRequest
 {
-    [JsonProperty("clientToken")]
-    public required string ClientToken { get; set; }
+    [JsonPropertyName("clientToken")] public required string ClientToken { get; set; }
 
-    [JsonProperty("accessToken")]
-    public required string AccessToken { get; set; }
+    [JsonPropertyName("accessToken")] public required string AccessToken { get; set; }
 
-    [JsonProperty("selectedProfile")]
-    public UserProfileModel? SelectedProfile { get; set; }
+    [JsonPropertyName("selectedProfile")] public UserProfileModel? SelectedProfile { get; set; }
 
-    [JsonProperty("requestUser")]
-    public bool RequestUser { get; set; }
+    [JsonPropertyName("requestUser")] public bool RequestUser { get; set; }
 }

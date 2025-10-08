@@ -8,17 +8,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArkProjects.Minecraft.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class Init1 : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "public");
-
             migrationBuilder.CreateTable(
                 name: "RefreshTokens",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -38,7 +34,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Servers",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -48,6 +43,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     Default = table.Column<bool>(type: "boolean", nullable: false),
                     YgDomain = table.Column<string>(type: "text", nullable: true),
                     SkinDomains = table.Column<List<string>>(type: "text[]", nullable: false),
+                    UploadableTextures = table.Column<List<string>>(type: "text[]", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
                     HomePageUrl = table.Column<string>(type: "text", nullable: false),
                     RegisterUrl = table.Column<string>(type: "text", nullable: false),
@@ -60,7 +56,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             migrationBuilder.CreateTable(
                 name: "TempCodes",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -79,20 +74,35 @@ namespace ArkProjects.Minecraft.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Textures",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    Texture = table.Column<string>(type: "text", nullable: false),
+                    File = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Sha256 = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Textures", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Guid = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     LoginNormalized = table.Column<string>(type: "text", nullable: false),
                     Login = table.Column<string>(type: "text", nullable: false),
                     EmailNormalized = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false)
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -101,7 +111,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserAccessTokens",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -110,6 +119,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     ClientToken = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ExpiredAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    MustBeRefreshedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ServerId = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -119,14 +129,12 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     table.ForeignKey(
                         name: "FK_UserAccessTokens_Servers_ServerId",
                         column: x => x.ServerId,
-                        principalSchema: "public",
                         principalTable: "Servers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserAccessTokens_Users_UserId",
                         column: x => x.UserId,
-                        principalSchema: "public",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -134,7 +142,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserProfiles",
-                schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -153,98 +160,115 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     table.ForeignKey(
                         name: "FK_UserProfiles_Servers_ServerId",
                         column: x => x.ServerId,
-                        principalSchema: "public",
                         principalTable: "Servers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserProfiles_Users_UserId",
                         column: x => x.UserId,
-                        principalSchema: "public",
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserServerJoins",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ExpiredAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ServerInstanceId = table.Column<string>(type: "text", nullable: false),
+                    UserProfileId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserServerJoins", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserServerJoins_UserProfiles_UserProfileId",
+                        column: x => x.UserProfileId,
+                        principalTable: "UserProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",
-                schema: "public",
                 table: "RefreshTokens",
                 column: "Token",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Servers_YgDomain",
-                schema: "public",
                 table: "Servers",
                 column: "YgDomain",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserAccessTokens_ServerId",
-                schema: "public",
                 table: "UserAccessTokens",
                 column: "ServerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserAccessTokens_UserId",
-                schema: "public",
                 table: "UserAccessTokens",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProfiles_ServerId",
-                schema: "public",
                 table: "UserProfiles",
                 column: "ServerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProfiles_UserId",
-                schema: "public",
                 table: "UserProfiles",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Guid",
-                schema: "public",
                 table: "Users",
                 column: "Guid",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_LoginNormalized_DeletedAt",
-                schema: "public",
                 table: "Users",
                 columns: new[] { "LoginNormalized", "DeletedAt" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserServerJoins_UserProfileId",
+                table: "UserServerJoins",
+                column: "UserProfileId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "RefreshTokens",
-                schema: "public");
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "TempCodes",
-                schema: "public");
+                name: "TempCodes");
 
             migrationBuilder.DropTable(
-                name: "UserAccessTokens",
-                schema: "public");
+                name: "Textures");
 
             migrationBuilder.DropTable(
-                name: "UserProfiles",
-                schema: "public");
+                name: "UserAccessTokens");
 
             migrationBuilder.DropTable(
-                name: "Servers",
-                schema: "public");
+                name: "UserServerJoins");
 
             migrationBuilder.DropTable(
-                name: "Users",
-                schema: "public");
+                name: "UserProfiles");
+
+            migrationBuilder.DropTable(
+                name: "Servers");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

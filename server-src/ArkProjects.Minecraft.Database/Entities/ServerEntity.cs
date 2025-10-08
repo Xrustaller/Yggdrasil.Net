@@ -8,12 +8,12 @@ public class ServerEntity
     public DateTimeOffset? DeletedAt { get; set; }
 
     /// <summary>
-    /// If set then will be used as fallback
+    ///     If set then will be used as fallback
     /// </summary>
     public bool Default { get; set; }
 
     /// <summary>
-    /// Yg domain
+    ///     Yg domain
     /// </summary>
     public string? YgDomain { get; set; }
 

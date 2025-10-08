@@ -8,7 +8,7 @@ public static class EfQueryExtensions
         {
             null => query,
             true => query.Where(x => x.DeletedAt != null),
-            false => query.Where(x => x.DeletedAt == null),
+            false => query.Where(x => x.DeletedAt == null)
         };
     }
 }

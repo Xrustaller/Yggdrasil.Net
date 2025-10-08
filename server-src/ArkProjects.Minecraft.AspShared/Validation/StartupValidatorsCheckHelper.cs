@@ -10,29 +10,29 @@ public class StartupValidatorsCheckHelper
 {
     public static void CheckActionsValidators(IServiceProvider serviceProvider, bool onlyOnDevEnv = true)
     {
-        var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
-        var logger = serviceProvider.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
+        IHostEnvironment environment = serviceProvider.GetRequiredService<IHostEnvironment>();
+        ILogger<StartupValidatorsCheckHelper> logger = serviceProvider.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
         if (onlyOnDevEnv && !environment.IsDevelopment())
         {
             logger.LogInformation("Skip validators check in non Development env");
             return;
         }
 
-        var scope = serviceProvider.CreateScope();
-        var service = scope.ServiceProvider.GetRequiredService<AllRequiredValidatorsRegisteredService>();
+        IServiceScope scope = serviceProvider.CreateScope();
+        AllRequiredValidatorsRegisteredService service = scope.ServiceProvider.GetRequiredService<AllRequiredValidatorsRegisteredService>();
         service.CheckControllersParams();
     }
 
     /// <summary>
-    /// Check that process run in required tz. Ignored in Development
+    ///     Check that process run in required tz. Ignored in Development
     /// </summary>
     /// <param name="services"></param>
     /// <param name="requiredOffset">If null used +0</param>
     public static IServiceProvider CheckTz(IServiceProvider services, TimeSpan? requiredOffset = null)
     {
-        var logger = services.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
+        ILogger<StartupValidatorsCheckHelper> logger = services.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
         requiredOffset ??= TimeSpan.FromHours(0);
-        var tz = TimeZoneInfo.Local;
+        TimeZoneInfo tz = TimeZoneInfo.Local;
 
         if (tz.BaseUtcOffset == requiredOffset)
             return services;
@@ -48,15 +48,15 @@ public class StartupValidatorsCheckHelper
     }
 
     /// <summary>
-    /// Check that process run with required locale. Ignored in Development
+    ///     Check that process run with required locale. Ignored in Development
     /// </summary>
     /// <param name="services"></param>
     /// <param name="requiredCulture">If null used Invariant</param>
     public static IServiceProvider CheckLocale(IServiceProvider services, CultureInfo? requiredCulture = null)
     {
-        var logger = services.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
+        ILogger<StartupValidatorsCheckHelper> logger = services.GetRequiredService<ILogger<StartupValidatorsCheckHelper>>();
         requiredCulture ??= CultureInfo.InvariantCulture;
-        var culture = CultureInfo.CurrentCulture;
+        CultureInfo culture = CultureInfo.CurrentCulture;
 
         if (culture.Equals(requiredCulture))
             return services;

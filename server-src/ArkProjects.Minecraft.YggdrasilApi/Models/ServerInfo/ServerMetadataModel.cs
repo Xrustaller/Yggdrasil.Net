@@ -1,21 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.ServerInfo;
 
 public class ServerMetadataModel
 {
-    [JsonProperty("implementationName")]
+    [JsonPropertyName("implementationName")]
     public required string ImplementationName { get; set; }
 
-    [JsonProperty("implementationVersion")]
+    [JsonPropertyName("implementationVersion")]
     public required string ImplementationVersion { get; set; }
 
-    [JsonProperty("serverName")]
-    public required string ServerName { get; set; }
+    [JsonPropertyName("serverName")] public required string ServerName { get; set; }
 
-    [JsonProperty("feature.non_email_login")]
+    [JsonPropertyName("feature.non_email_login")]
     public bool FeatureNonEmailLogin { get; set; }
 
-    [JsonProperty("links")]
-    public ServerMetadataLinksModel Links { get; set; }
+    [JsonPropertyName("links")] public ServerMetadataLinksModel Links { get; set; }
 }

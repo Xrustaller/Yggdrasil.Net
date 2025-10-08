@@ -1,11 +1,13 @@
 using System.Reflection;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using ArkProjects.Minecraft.AspShared.EntityFramework;
 using ArkProjects.Minecraft.AspShared.Logging;
 using ArkProjects.Minecraft.AspShared.Validation;
 using ArkProjects.Minecraft.Database;
 using ArkProjects.Minecraft.YggdrasilApi.Misc;
 using ArkProjects.Minecraft.YggdrasilApi.Misc.JsonConverters;
+using ArkProjects.Minecraft.YggdrasilApi.Models;
 using ArkProjects.Minecraft.YggdrasilApi.Options;
 using ArkProjects.Minecraft.YggdrasilApi.Services;
 using ArkProjects.Minecraft.YggdrasilApi.Services.Server;
@@ -15,10 +17,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
 using Npgsql;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"Application: {builder.Environment.ApplicationName}");
@@ -34,14 +35,22 @@ builder.Services
     .AddScoped<IYgUserService, YgUserService>();
 
 //security
-var securityOptions = builder.Configuration.GetSection("WebSecurity").Get<WebSecurityOptions>()!;
+WebSecurityOptions securityOptions = builder.Configuration.GetSection("WebSecurity").Get<WebSecurityOptions>()!;
 builder.Services
     .Configure<WebSecurityOptions>(builder.Configuration.GetSection("WebSecurity"))
     ;
 
-var dbOptions = builder.Configuration.GetSection("Database:ConnectionString").Value!;
-var dbSourceBuilder = new NpgsqlDataSourceBuilder(dbOptions);
-var dbSource = dbSourceBuilder.Build();
+NpgsqlConnectionStringBuilder csb = new()
+{
+    Host = builder.Configuration["PostgresSQL:Host"],
+    Port = builder.Configuration.GetSection("PostgresSQL:Port").Get<int>(),
+    Username = builder.Configuration["PostgresSQL:Username"],
+    Password = builder.Configuration["PostgresSQL:Password"],
+    Database = builder.Configuration["PostgresSQL:Database"],
+    SslMode = SslMode.Prefer
+};
+NpgsqlDataSourceBuilder dbSourceBuilder = new(csb.ConnectionString);
+NpgsqlDataSource dbSource = dbSourceBuilder.Build();
 builder.Services
     .AddSingleton<IDbSeeder<McDbContext>, McDbContextSeeder>()
     .AddRbDbMigrator<McDbContext>()
@@ -55,25 +64,20 @@ builder.Services
 builder.Services
     .Configure<ApiBehaviorOptions>(opts => { opts.SuppressConsumesConstraintForFormFileParameters = true; })
     .AddControllers()
-    .AddNewtonsoftJson(o =>
+    .AddJsonOptions(o =>
     {
-        o.SerializerSettings.ContractResolver = new DefaultContractResolver()
-        {
-            NamingStrategy = new CamelCaseNamingStrategy()
-        };
-        o.SerializerSettings.Converters.Add(new YggdrasilGuidConverter());
-    })
-    ;
+        o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        o.JsonSerializerOptions.Converters.Add(new YggdrasilGuidConverter());
+    });
 
 //swagger
-var swaggerOptions = builder.Configuration.GetSection("Swagger").Get<SwaggerOptions>();
+SwaggerOptions? swaggerOptions = builder.Configuration.GetSection("Swagger").Get<SwaggerOptions>();
 builder.Services
     .Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"))
-    .AddSwaggerGenNewtonsoftSupport()
     .AddEndpointsApiExplorer()
     .AddSwaggerGen(o =>
     {
-        var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        string xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     })
     ;
@@ -81,12 +85,12 @@ builder.Services
 //#########################################################################
 
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 //forwarded headers
 if (securityOptions.EnableForwardedHeaders)
 {
-    var forwardOptions = new ForwardedHeadersOptions
+    ForwardedHeadersOptions forwardOptions = new()
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
         ForwardLimit = 10,
@@ -105,17 +109,17 @@ app.Use(async (context, next) =>
     }
     catch (Exception e)
     {
-        var err = e is YgServerException ygE
+        ErrorResponse err = e is YgServerException ygE
             ? ygE.Response
             : ErrorResponseFactory.Custom(
                 StatusCodes.Status500InternalServerError,
                 ErrorResponseFactory.ErrorInternalServerError,
                 e.ToString());
-        var jsonHelper = context.RequestServices.GetRequiredService<IJsonHelper>();
+        IJsonHelper jsonHelper = context.RequestServices.GetRequiredService<IJsonHelper>();
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = err.StatusCode;
-        var respStream = context.Response.BodyWriter.AsStream();
-        await using var textWriter = new StreamWriter(respStream);
+        Stream respStream = context.Response.BodyWriter.AsStream();
+        await using StreamWriter textWriter = new(respStream);
         jsonHelper.Serialize(err).WriteTo(textWriter, HtmlEncoder.Default);
     }
 });
@@ -124,10 +128,7 @@ app.Use(async (context, next) =>
 app.UseRbSerilogRequestLogging();
 
 // https redirection
-if (securityOptions.EnableHttpsRedirections)
-{
-    app.UseHttpsRedirection();
-}
+if (securityOptions.EnableHttpsRedirections) app.UseHttpsRedirection();
 
 //swagger
 if (swaggerOptions?.Enable == true)
@@ -145,10 +146,7 @@ app.MapControllers();
 //#########################################################################
 
 
-app.Services
-    .RbCheckTz()
-    .RbCheckLocale()
-    ;
+app.Services.RbCheckTz().RbCheckLocale();
 
 await app.Services.RbEfMigrateAsync<McDbContext>();
 await app.RunAsync();

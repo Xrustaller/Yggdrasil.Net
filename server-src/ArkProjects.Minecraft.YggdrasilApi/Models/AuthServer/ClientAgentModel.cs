@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 public class ClientAgentModel
 {
-    [JsonProperty("name")]
-    public string? Name { get; set; }
+    [JsonPropertyName("name")] public string? Name { get; set; }
 
-    [JsonProperty("version")]
-    public int? Version { get; set; }
+    [JsonPropertyName("version")] public int? Version { get; set; }
 }

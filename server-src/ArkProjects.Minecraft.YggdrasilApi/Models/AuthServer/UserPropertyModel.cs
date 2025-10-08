@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
@@ -6,9 +6,7 @@ public class UserPropertyModel
 {
     public const string PreferredLangKey = "preferredLanguage";
 
-    [JsonProperty("name")]
-    public required string Name { get; set; }
+    [JsonPropertyName("name")] public required string Name { get; set; }
 
-    [JsonProperty("value")]
-    public required string Value { get; set; }
+    [JsonPropertyName("value")] public required string Value { get; set; }
 }

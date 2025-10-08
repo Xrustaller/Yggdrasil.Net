@@ -3,12 +3,12 @@
 namespace ArkProjects.Minecraft.AspShared.EntityFramework;
 
 /// <summary>
-/// pg db options
+///     pg db options
 /// </summary>
 public class PgDatabaseOptions
 {
     /// <summary>
-    /// Connection string
+    ///     Connection string
     /// </summary>
     [Required]
     public string ConnectionString { get; set; } = "";

@@ -1,15 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.ServerInfo;
 
 public class ServerInfoModel
 {
-    [JsonProperty("meta")]
-    public ServerMetadataModel? Meta { get; set; }
+    [JsonPropertyName("meta")] public ServerMetadataModel? Meta { get; set; }
 
-    [JsonProperty("skinDomains")]
-    public IReadOnlyList<string> SkinDomains { get; set; }
+    [JsonPropertyName("skinDomains")] public IReadOnlyList<string> SkinDomains { get; set; }
 
-    [JsonProperty("signaturePublickey")]
+    [JsonPropertyName("signaturePublickey")]
     public string? SignaturePublicKey { get; set; }
 }

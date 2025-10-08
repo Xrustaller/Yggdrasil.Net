@@ -25,25 +25,25 @@ public class McDbContextSeeder : IDbSeeder<McDbContext>
         if (!await db.Servers.AnyAsync(ct))
         {
             _logger.LogInformation("Create default server");
-            var rsaKey = RSA.Create(4096);
+            RSA rsaKey = RSA.Create(4096);
 
-            var ygDomain = "yggdrasil-dev.sv1.in.arkprojects.space";
-            var certReq = new CertificateRequest($"CN={ygDomain}", rsaKey, HashAlgorithmName.SHA256,
+            string ygDomain = "yggdrasil-dev.sv1.in.arkprojects.space";
+            CertificateRequest certReq = new($"CN={ygDomain}", rsaKey, HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
-            var cert = certReq.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(10));
-            var pfxCert = cert.Export(X509ContentType.Pfx);
+            X509Certificate2 cert = certReq.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(10));
+            byte[] pfxCert = cert.Export(X509ContentType.Pfx);
 
-            var server = new ServerEntity()
+            ServerEntity server = new()
             {
                 Name = "Yggdrasil MC.NET",
-                HomePageUrl = "https://yggdrasil.sv1.in.arkprojects.space/home",
+                HomePageUrl = "https://yggdrasil.sv1.in.SignOutRequest/home",
                 RegisterUrl = "https://yggdrasil.sv1.in.arkprojects.space/register",
                 YgDomain = ygDomain,
                 Default = true,
-                SkinDomains = new List<string>() { ygDomain },
-                UploadableTextures = new List<string>() { "CAPE", "SKIN" },
+                SkinDomains = new List<string> { ygDomain },
+                UploadableTextures = new List<string> { "CAPE", "SKIN" },
                 PfxCert = pfxCert,
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow
             };
             db.Servers.Add(server);
             await db.SaveChangesAsync(CancellationToken.None);
@@ -53,11 +53,11 @@ public class McDbContextSeeder : IDbSeeder<McDbContext>
         if (!await db.Users.AnyAsync(ct))
         {
             _logger.LogInformation("Create admin user");
-            var login = "admin";
-            var email = "admin@test.com";
-            var guid = Guid.NewGuid();
-            var password = guid.ToString();
-            var user = new UserEntity()
+            string login = "admin";
+            string email = "admin@test.com";
+            Guid guid = Guid.NewGuid();
+            string password = guid.ToString();
+            UserEntity user = new()
             {
                 Guid = guid,
                 Login = login,
@@ -65,7 +65,7 @@ public class McDbContextSeeder : IDbSeeder<McDbContext>
                 Email = email,
                 EmailNormalized = email.Normalize().ToUpper(),
                 PasswordHash = _passwordService.CreatePasswordHash(password),
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow
             };
             db.Users.Add(user);
             await db.SaveChangesAsync(CancellationToken.None);

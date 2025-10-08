@@ -4,6 +4,14 @@ namespace ArkProjects.Minecraft.AspShared.Validation;
 
 public class ControllerActionValidationResult
 {
+    public enum ValidationSkipType
+    {
+        No,
+        Attribute,
+        MemberType,
+        Assembly
+    }
+
     public required string ControllerName { get; set; }
     public required string ActionName { get; set; }
     public IReadOnlyCollection<ArgumentValidationInfo> Arguments { get; set; } = Array.Empty<ArgumentValidationInfo>();
@@ -22,20 +30,12 @@ public class ControllerActionValidationResult
 
         public override string ToString()
         {
-            var inf = SkipType == ValidationSkipType.No
+            string inf = SkipType == ValidationSkipType.No
                 ? ValidatorFound
                     ? "found"
                     : "miss"
                 : "skip";
             return $"{ParameterInfo.Name}: {inf}";
         }
-    }
-
-    public enum ValidationSkipType
-    {
-        No,
-        Attribute,
-        MemberType,
-        Assembly,
     }
 }

@@ -1,6 +1,5 @@
 ﻿using ArkProjects.Minecraft.Database.Entities.Users;
 using ArkProjects.Minecraft.Database.Entities.Yg;
-using ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.User;
 

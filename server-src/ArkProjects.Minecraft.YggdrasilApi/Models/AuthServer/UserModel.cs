@@ -1,22 +1,19 @@
-﻿using ArkProjects.Minecraft.Database.Entities.Users;
-using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
+using ArkProjects.Minecraft.Database.Entities.Users;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 public class UserModel
 {
-    [JsonProperty("username")]
-    public required string UserName { get; set; }
+    [JsonPropertyName("username")] public required string UserName { get; set; }
 
-    [JsonProperty("id")]
-    public required Guid Id { get; set; }
+    [JsonPropertyName("id")] public required Guid Id { get; set; }
 
-    [JsonProperty("properties")]
-    public required IReadOnlyList<UserPropertyModel> Properties { get; set; }
+    [JsonPropertyName("properties")] public required IReadOnlyList<UserPropertyModel> Properties { get; set; }
 
     public static UserModel Map(UserEntity user)
     {
-        return new UserModel()
+        return new UserModel
         {
             Id = user.Guid,
             UserName = user.Login,

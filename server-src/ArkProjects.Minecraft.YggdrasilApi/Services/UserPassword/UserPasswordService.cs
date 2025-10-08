@@ -24,7 +24,7 @@ public class UserPasswordService : IUserPasswordService
     {
         if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
             return false;
-        var parts = passwordHash.Split('$');
+        string[] parts = passwordHash.Split('$');
         if (parts.Length != 3)
             return false;
         if (parts[0] != "1")
@@ -40,20 +40,19 @@ public class UserPasswordService : IUserPasswordService
 
     private string CreatePasswordHashV1(string password, string? salt = null)
     {
-        var saltBytes = salt == null
+        byte[] saltBytes = salt == null
             ? RandomNumberGenerator.GetBytes(128 / 8)
             : Convert.FromBase64String(salt);
-        var hashBytes = KeyDerivation.Pbkdf2(
-            password: password!,
-            salt: saltBytes,
-            prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 100000,
-            numBytesRequested: 256 / 8);
-        var saltB64 = Convert.ToBase64String(saltBytes);
-        var hashB64 = Convert.ToBase64String(hashBytes);
+        byte[] hashBytes = KeyDerivation.Pbkdf2(
+            password!,
+            saltBytes,
+            KeyDerivationPrf.HMACSHA256,
+            100000,
+            256 / 8);
+        string saltB64 = Convert.ToBase64String(saltBytes);
+        string hashB64 = Convert.ToBase64String(hashBytes);
 
-        var result = $"{LastHasherVer}${saltB64}${hashB64}";
+        string result = $"{LastHasherVer}${saltB64}${hashB64}";
         return result;
     }
-
 }

@@ -13,15 +13,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArkProjects.Minecraft.Database.Migrations
 {
     [DbContext(typeof(McDbContext))]
-    [Migration("20240414141138_Init4")]
-    partial class Init4
+    [Migration("20251007210502_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -59,11 +59,11 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<string>>("SkinDomains")
+                    b.PrimitiveCollection<List<string>>("SkinDomains")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<List<string>>("UploadableTextures")
+                    b.PrimitiveCollection<List<string>>("UploadableTextures")
                         .HasColumnType("text[]");
 
                     b.Property<string>("YgDomain")
@@ -75,34 +75,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("Servers");
-                });
-
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.UserServerJoinEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("ExpiredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ServerInstanceId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("UserProfileId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserProfileId");
-
-                    b.ToTable("UserServerJoins");
                 });
 
             modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.RefreshTokenEntity", b =>
@@ -179,46 +151,6 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     b.ToTable("TempCodes");
                 });
 
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserAccessTokenEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("AccessToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ClientToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("ExpiredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("MustBeRefreshedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("ServerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServerId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserAccessTokens");
-                });
-
             modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -267,7 +199,75 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserProfileEntity", b =>
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.TextureEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<byte[]>("File")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Sha256")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Texture")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Textures");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserAccessTokenEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClientToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("MustBeRefreshedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("ServerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAccessTokens");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserProfileEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -306,53 +306,81 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.UserServerJoinEntity", b =>
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserServerJoinEntity", b =>
                 {
-                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Users.UserProfileEntity", "UserProfile")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ServerInstanceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("UserProfileId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("UserServerJoins");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserAccessTokenEntity", b =>
+                {
+                    b.HasOne("ArkProjects.Minecraft.Database.Entities.ServerEntity", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserProfileEntity", b =>
+                {
+                    b.HasOne("ArkProjects.Minecraft.Database.Entities.ServerEntity", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.UserServerJoinEntity", b =>
+                {
+                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Yg.UserProfileEntity", "UserProfile")
                         .WithMany()
                         .HasForeignKey("UserProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserAccessTokenEntity", b =>
-                {
-                    b.HasOne("ArkProjects.Minecraft.Database.Entities.ServerEntity", "Server")
-                        .WithMany()
-                        .HasForeignKey("ServerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Server");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserProfileEntity", b =>
-                {
-                    b.HasOne("ArkProjects.Minecraft.Database.Entities.ServerEntity", "Server")
-                        .WithMany()
-                        .HasForeignKey("ServerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Server");
-
-                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,18 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Misc.JsonConverters;
 
 public class YggdrasilGuidConverter : JsonConverter<Guid>
 {
-    public override void WriteJson(JsonWriter writer, Guid value, JsonSerializer serializer)
+    // запись без дефисов
+    public override void Write(Utf8JsonWriter writer, Guid value, JsonSerializerOptions options)
     {
-        writer.WriteValue(value.ToString("N"));
+        writer.WriteStringValue(value.ToString("N"));
     }
 
-    public override Guid ReadJson(JsonReader reader, Type objectType, Guid existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    // чтение guid из строки
+    public override Guid Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var str = reader.Value?.ToString();
-        return str == null ? existingValue : Guid.Parse(str);
+        string? str = reader.GetString();
+        return str != null ? Guid.Parse(str) : Guid.Empty;
     }
 }

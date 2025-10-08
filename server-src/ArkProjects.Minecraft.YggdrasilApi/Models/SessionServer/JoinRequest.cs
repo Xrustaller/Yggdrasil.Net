@@ -1,15 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.SessionServer;
 
 public class JoinRequest
 {
-    [JsonProperty("accessToken")]
-    public string AccessToken { get; set; } = null!;
+    [JsonPropertyName("accessToken")] public string AccessToken { get; set; } = null!;
 
-    [JsonProperty("selectedProfile")]
-    public Guid SelectedProfile { get; set; }
+    [JsonPropertyName("selectedProfile")] public Guid SelectedProfile { get; set; }
 
-    [JsonProperty("serverId")]
-    public string ServerId { get; set; } = null!;
+    [JsonPropertyName("serverId")] public string ServerId { get; set; } = null!;
 }

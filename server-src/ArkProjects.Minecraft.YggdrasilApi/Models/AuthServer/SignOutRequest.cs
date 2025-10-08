@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 public class SignOutRequest
 {
-    [JsonProperty("username")]
-    public string UserName { get; set; } = null!;
+    [JsonPropertyName("username")] public string UserName { get; set; } = null!;
 
-    [JsonProperty("password")]
-    public string Password { get; set; } = null!;
+    [JsonPropertyName("password")] public string Password { get; set; } = null!;
 }

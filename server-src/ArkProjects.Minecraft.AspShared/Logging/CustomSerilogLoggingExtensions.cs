@@ -17,7 +17,7 @@ namespace ArkProjects.Minecraft.AspShared.Logging;
 public static class CustomSerilogLoggingExtensions
 {
     /// <summary>
-    /// Configure serilog
+    ///     Configure serilog
     /// </summary>
     public static IServiceCollection ConfigureRbSerilog(this IServiceCollection services, IConfiguration cfg)
     {
@@ -25,7 +25,7 @@ public static class CustomSerilogLoggingExtensions
     }
 
     /// <summary>
-    /// Add serilog
+    ///     Add serilog
     /// </summary>
     public static IHostBuilder AddRbSerilog(this IHostBuilder host,
         Action<HostBuilderContext, IServiceProvider, LoggerConfiguration>? applyAfter = null)
@@ -46,13 +46,13 @@ public static class CustomSerilogLoggingExtensions
 
             l.WriteTo.Console();
 
-            var configurationAssemblies = new Assembly[]
+            Assembly[] configurationAssemblies = new[]
             {
                 typeof(LoggerConfigurationElasticsearchExtensions).Assembly,
                 typeof(ConsoleLoggerConfigurationExtensions).Assembly,
-                typeof(FileLoggerConfigurationExtensions).Assembly,
+                typeof(FileLoggerConfigurationExtensions).Assembly
             };
-            var options = new ConfigurationReaderOptions(configurationAssemblies);
+            ConfigurationReaderOptions options = new(configurationAssemblies);
             l.ReadFrom.Configuration(ctx.Configuration, options);
 
             applyAfter?.Invoke(ctx, services, l);
@@ -61,11 +61,11 @@ public static class CustomSerilogLoggingExtensions
     }
 
     /// <summary>
-    /// Если включено в конфигурации то логирует запрос. Горячая перезагрузка конфига не применяется
+    ///     Если включено в конфигурации то логирует запрос. Горячая перезагрузка конфига не применяется
     /// </summary>
     public static WebApplication UseRbSerilogRequestLogging(this WebApplication app)
     {
-        var serilogOptions = app.Services.GetRequiredService<IOptions<SerilogOptions>>().Value;
+        SerilogOptions serilogOptions = app.Services.GetRequiredService<IOptions<SerilogOptions>>().Value;
         if (serilogOptions.EnableRequestLogging)
         {
             const int inMemBuffLen = 50 * 1024;
@@ -75,7 +75,7 @@ public static class CustomSerilogLoggingExtensions
 
             if (serilogOptions.EnableRequestBodyLogging)
             {
-                Console.WriteLine($"Request body logging enabled");
+                Console.WriteLine("Request body logging enabled");
                 app.Use((context, next) =>
                 {
                     context.Request.EnableBuffering(inMemBuffLen);
@@ -89,10 +89,9 @@ public static class CustomSerilogLoggingExtensions
                 o.GetLevel = (httpContext, elapsed, ex) => serilogOptions.RequestLogMessageLevel;
                 o.EnrichDiagnosticContext = (diagnosticContext, context) =>
                 {
-                    var bodyStr = (string?)null;
+                    string? bodyStr = null;
                     if (context.Request.ContentType == MediaTypeNames.Application.Json &&
                         serilogOptions.EnableRequestBodyLogging)
-                    {
                         try
                         {
                             if (context.Request.ContentLength > maxLoggingBodyLen)
@@ -101,11 +100,11 @@ public static class CustomSerilogLoggingExtensions
                             }
                             else
                             {
-                                var blob = MemoryPool<byte>.Shared.Rent(maxLoggingBodyLen)
-                                    .Memory[..(maxLoggingBodyLen)];
-                                var origPos = context.Request.Body.Position;
+                                Memory<byte> blob = MemoryPool<byte>.Shared.Rent(maxLoggingBodyLen)
+                                    .Memory[..maxLoggingBodyLen];
+                                long origPos = context.Request.Body.Position;
                                 context.Request.Body.Position = 0;
-                                var read = context.Request.Body.ReadAsync(blob, CancellationToken.None).Result;
+                                int read = context.Request.Body.ReadAsync(blob, CancellationToken.None).Result;
                                 bodyStr = Encoding.UTF8.GetString(blob[..read].Span);
                                 context.Request.Body.Position = origPos;
                             }
@@ -114,23 +113,22 @@ public static class CustomSerilogLoggingExtensions
                         {
                             //ignore
                         }
-                    }
 
                     var request = new
                     {
                         IpAddress = context.Connection.RemoteIpAddress?.ToString(),
                         Host = context.Request.Host.ToString(),
                         Path = context.Request.Path.ToString(),
-                        IsHttps = context.Request.IsHttps,
-                        Scheme = context.Request.Scheme,
-                        Method = context.Request.Method,
-                        ContentType = context.Request.ContentType,
-                        Protocol = context.Request.Protocol,
+                        context.Request.IsHttps,
+                        context.Request.Scheme,
+                        context.Request.Method,
+                        context.Request.ContentType,
+                        context.Request.Protocol,
                         QueryString = context.Request.QueryString.ToString(),
                         Query = context.Request.Query.ToDictionary(x => x.Key, y => y.Value.ToString()),
                         Headers = context.Request.Headers.ToDictionary(x => x.Key, y => y.Value.ToString()),
                         Cookies = context.Request.Cookies.ToDictionary(x => x.Key, y => y.Value.ToString()),
-                        BodyString = bodyStr,
+                        BodyString = bodyStr
                     };
                     diagnosticContext.Set("Request", request, true);
                 };
@@ -138,7 +136,7 @@ public static class CustomSerilogLoggingExtensions
         }
         else
         {
-            Console.WriteLine($"Request logging disabled");
+            Console.WriteLine("Request logging disabled");
         }
 
         return app;

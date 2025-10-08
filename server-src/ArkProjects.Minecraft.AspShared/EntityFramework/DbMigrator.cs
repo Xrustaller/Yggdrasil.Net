@@ -7,26 +7,26 @@ public class DbMigrator<T> : IDbMigrator<T> where T : DbContext
 {
     private readonly ILogger<DbMigrator<T>> _logger;
     private readonly IDbSeeder<T>? _seeder;
-    private readonly T _db;
-
-    public T DbContext => _db;
-    DbContext IDbMigrator.DbContext => _db;
 
     public DbMigrator(T db, ILogger<DbMigrator<T>> logger, IDbSeeder<T>? seeder = null)
     {
         _seeder = seeder;
-        _db = db;
+        DbContext = db;
         _logger = logger;
     }
 
+    public T DbContext { get; }
+
+    DbContext IDbMigrator.DbContext => DbContext;
+
     public async Task<string[]> GetPendingMigrationsAsync()
     {
-        return (await _db.Database.GetPendingMigrationsAsync()).ToArray();
+        return (await DbContext.Database.GetPendingMigrationsAsync()).ToArray();
     }
 
     public async Task MigrateAsync(CancellationToken ct = default)
     {
-        var pendingMigrations = await GetPendingMigrationsAsync();
+        string[] pendingMigrations = await GetPendingMigrationsAsync();
         if (pendingMigrations.Length == 0)
         {
             _logger.LogInformation("No pending migrations");
@@ -34,7 +34,7 @@ public class DbMigrator<T> : IDbMigrator<T> where T : DbContext
         }
 
         _logger.LogInformation("Begin applying pending migrations {pending}", (object)pendingMigrations);
-        await _db.Database.MigrateAsync(ct);
+        await DbContext.Database.MigrateAsync(ct);
         _logger.LogInformation("Successfully migrated");
     }
 
@@ -43,7 +43,7 @@ public class DbMigrator<T> : IDbMigrator<T> where T : DbContext
         if (_seeder != null)
         {
             _logger.LogInformation("Begin seeding");
-            await _seeder.SeedAsync(_db, ct);
+            await _seeder.SeedAsync(DbContext, ct);
             _logger.LogInformation("Successfully seed");
         }
         else

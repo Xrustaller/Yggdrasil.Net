@@ -4,22 +4,19 @@ namespace ArkProjects.Minecraft.AspShared.Validation;
 
 public class HaveMissedValidatorsException : Exception
 {
-    public IReadOnlyList<ControllerActionValidationResult> Results { get; }
-
     public HaveMissedValidatorsException(IReadOnlyList<ControllerActionValidationResult> results) : base(
         BuildMessage(results))
     {
         Results = results;
     }
 
+    public IReadOnlyList<ControllerActionValidationResult> Results { get; }
+
     private static string BuildMessage(IReadOnlyList<ControllerActionValidationResult> results)
     {
-        var sb = new StringBuilder();
-        sb.AppendLine($"Detect missing validators in controllers");
-        foreach (var cav in results)
-        {
-            sb.AppendLine(cav.ToString());
-        }
+        StringBuilder sb = new();
+        sb.AppendLine("Detect missing validators in controllers");
+        foreach (ControllerActionValidationResult cav in results) sb.AppendLine(cav.ToString());
 
         return sb.ToString();
     }

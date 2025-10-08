@@ -9,8 +9,6 @@ public class UserEntity : IEntityWithDeletingFlag
 
     public DateTimeOffset CreatedAt { get; set; }
 
-    public DateTimeOffset? DeletedAt { get; set; }
-
     public required string LoginNormalized { get; set; }
     public required string Login { get; set; }
 
@@ -18,4 +16,6 @@ public class UserEntity : IEntityWithDeletingFlag
     public required string Email { get; set; }
 
     public required string PasswordHash { get; set; }
+
+    public DateTimeOffset? DeletedAt { get; set; }
 }

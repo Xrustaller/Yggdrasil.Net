@@ -1,21 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.AuthServer;
 
 public class AuthenticateResponse
 {
-    [JsonProperty("user")]
-    public UserModel? User { get; set; }
+    [JsonPropertyName("user")] public UserModel? User { get; set; }
 
-    [JsonProperty("clientToken")]
-    public required string ClientToken { get; set; }
+    [JsonPropertyName("clientToken")] public required string ClientToken { get; set; }
 
-    [JsonProperty("accessToken")]
-    public required string AccessToken { get; set; }
+    [JsonPropertyName("accessToken")] public required string AccessToken { get; set; }
 
-    [JsonProperty("availableProfiles")]
+    [JsonPropertyName("availableProfiles")]
     public required IReadOnlyList<UserProfileModel> AvailableProfiles { get; set; }
 
-    [JsonProperty("selectedProfile")]
-    public UserProfileModel? SelectedProfile { get; set; }
+    [JsonPropertyName("selectedProfile")] public UserProfileModel? SelectedProfile { get; set; }
 }

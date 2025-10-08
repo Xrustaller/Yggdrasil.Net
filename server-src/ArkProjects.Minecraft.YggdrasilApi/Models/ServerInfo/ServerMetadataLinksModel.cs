@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Models.ServerInfo;
 
 public class ServerMetadataLinksModel
 {
-    [JsonProperty("homepage")]
-    public required string HomePage { get; set; }
+    [JsonPropertyName("homepage")] public required string HomePage { get; set; }
 
-    [JsonProperty("register")]
-    public required string Register { get; set; }
+    [JsonPropertyName("register")] public required string Register { get; set; }
 }

@@ -1,24 +1,18 @@
 ﻿using ArkProjects.Minecraft.Database;
+using ArkProjects.Minecraft.Database.Entities;
 using ArkProjects.Minecraft.Database.Entities.Users;
 using ArkProjects.Minecraft.Database.Entities.Yg;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.User;
 
-public class YgUserService : IYgUserService
+public class YgUserService(McDbContext db) : IYgUserService
 {
-    private readonly McDbContext _db;
-
-    public YgUserService(McDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<UserEntity?> GetUserByLoginOrEmailAsync(string loginOrEmail, string domain,
         CancellationToken ct = default)
     {
-        var n = loginOrEmail.Normalize().ToUpper();
-        var user = await _db.Users
+        string n = loginOrEmail.Normalize().ToUpper();
+        UserEntity? user = await db.Users
             .AsNoTracking()
             .Where(x => (x.EmailNormalized == n || x.LoginNormalized == n) && x.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
@@ -28,7 +22,7 @@ public class YgUserService : IYgUserService
     public async Task<UserEntity?> GetUserByAccessTokenAsync(string accessToken, string domain,
         CancellationToken ct = default)
     {
-        var user = await _db.UserAccessTokens
+        UserEntity? user = await db.UserAccessTokens
             .AsNoTracking()
             .Where(x =>
                 x.AccessToken == accessToken &&
@@ -44,45 +38,20 @@ public class YgUserService : IYgUserService
         return GetUserExtendedProfileAsync(profileGuid, null, domain, ct);
     }
 
-    private async Task<UserProfileEntity?> GetUserExtendedProfileAsync(Guid? profileGuid, string? profileName,
-        string domain,
-        CancellationToken ct = default)
-    {
-        var query = _db.UserProfiles
-            .AsNoTracking()
-            .Where(x =>
-                x.Server!.YgDomain == domain &&
-                x.User!.DeletedAt == null);
-        if (profileGuid != null)
-        {
-            query = query.Where(x => x.Guid == profileGuid.Value);
-        }
-        else if (!string.IsNullOrWhiteSpace(profileName))
-        {
-            query = query.Where(x => x.Name == profileName);
-        }
-        else
-        {
-            throw new ArgumentNullException("", "guid or name must be not null");
-        }
-
-        return await query.FirstOrDefaultAsync(ct);
-    }
-
     public async Task<string> CreateAccessTokenAsync(string clientToken, Guid userGuid, string domain,
         CancellationToken ct = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var user = await _db.Users
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        UserEntity user = await db.Users
             .Where(x => x.DeletedAt == null && x.Guid == userGuid)
             .FirstAsync(ct);
-        var server = await _db.Servers
+        ServerEntity server = await db.Servers
             .Where(x => x.DeletedAt == null && x.YgDomain == domain)
             .FirstAsync(ct);
 
-        var exp = TimeSpan.FromDays(2);
-        var refr = TimeSpan.FromDays(28);
-        var entity = new UserAccessTokenEntity()
+        TimeSpan exp = TimeSpan.FromDays(2);
+        TimeSpan refr = TimeSpan.FromDays(28);
+        UserAccessTokenEntity entity = new()
         {
             Server = server,
             User = user,
@@ -90,18 +59,18 @@ public class YgUserService : IYgUserService
             ClientToken = clientToken,
             ExpiredAt = now + exp,
             MustBeRefreshedAt = now + refr,
-            CreatedAt = now,
+            CreatedAt = now
         };
-        _db.UserAccessTokens.Add(entity);
-        await _db.SaveChangesAsync(CancellationToken.None);
+        db.UserAccessTokens.Add(entity);
+        await db.SaveChangesAsync(CancellationToken.None);
         return entity.AccessToken;
     }
 
     public async Task<bool> ValidateAccessTokenAsync(string? clientToken, string accessToken, string domain,
         CancellationToken ct = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var isValid = await _db.UserAccessTokens
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        bool isValid = await db.UserAccessTokens
             .Where(x =>
                 (x.ClientToken == clientToken || clientToken == null) &&
                 x.User!.DeletedAt == null &&
@@ -115,8 +84,8 @@ public class YgUserService : IYgUserService
     public async Task<bool> CanRefreshAccessTokenAsync(string? clientToken, string accessToken, string domain,
         CancellationToken ct = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var isValid = await _db.UserAccessTokens
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        bool isValid = await db.UserAccessTokens
             .Where(x =>
                 (x.ClientToken == clientToken || clientToken == null) &&
                 x.User!.DeletedAt == null &&
@@ -130,8 +99,8 @@ public class YgUserService : IYgUserService
     public async Task InvalidateAccessTokenAsync(Guid userGuid, string accessToken, string domain,
         CancellationToken ct = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var tokenEntity = await _db.UserAccessTokens
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        UserAccessTokenEntity tokenEntity = await db.UserAccessTokens
             .Where(x =>
                 x.User!.Guid == userGuid &&
                 x.User!.DeletedAt == null &&
@@ -141,25 +110,44 @@ public class YgUserService : IYgUserService
             .FirstAsync(ct);
         tokenEntity.ExpiredAt = now;
         tokenEntity.MustBeRefreshedAt = now;
-        await _db.SaveChangesAsync(CancellationToken.None);
+        await db.SaveChangesAsync(CancellationToken.None);
     }
 
     public async Task InvalidateAllAccessTokensAsync(Guid userGuid, string domain, CancellationToken ct = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var tokenEntities = await _db.UserAccessTokens
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        UserAccessTokenEntity[] tokenEntities = await db.UserAccessTokens
             .Where(x =>
                 x.User!.Guid == userGuid &&
                 x.User!.DeletedAt == null &&
                 x.ExpiredAt > now &&
                 x.Server!.YgDomain == domain)
             .ToArrayAsync(ct);
-        foreach (var tokenEntity in tokenEntities)
+        foreach (UserAccessTokenEntity tokenEntity in tokenEntities)
         {
             tokenEntity.ExpiredAt = now;
             tokenEntity.MustBeRefreshedAt = now;
         }
 
-        await _db.SaveChangesAsync(CancellationToken.None);
+        await db.SaveChangesAsync(CancellationToken.None);
+    }
+
+    private async Task<UserProfileEntity?> GetUserExtendedProfileAsync(Guid? profileGuid, string? profileName,
+        string domain,
+        CancellationToken ct = default)
+    {
+        IQueryable<UserProfileEntity> query = db.UserProfiles
+            .AsNoTracking()
+            .Where(x =>
+                x.Server!.YgDomain == domain &&
+                x.User!.DeletedAt == null);
+        if (profileGuid != null)
+            query = query.Where(x => x.Guid == profileGuid.Value);
+        else if (!string.IsNullOrWhiteSpace(profileName))
+            query = query.Where(x => x.Name == profileName);
+        else
+            throw new ArgumentNullException("", "guid or name must be not null");
+
+        return await query.FirstOrDefaultAsync(ct);
     }
 }

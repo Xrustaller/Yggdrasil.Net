@@ -2,13 +2,7 @@ using ArkProjects.Minecraft.YggdrasilApi.Models;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Misc;
 
-public class YgServerException : Exception
+public class YgServerException(ErrorResponse response, Exception? innerException = null) : Exception(response.ErrorMessage, innerException)
 {
-    public YgServerException(ErrorResponse response, Exception? innerException = null) : base(
-        response.ErrorMessage, innerException)
-    {
-        Response = response;
-    }
-
-    public ErrorResponse Response { get; }
+    public ErrorResponse Response { get; } = response;
 }
