@@ -7,16 +7,14 @@ public class UserPasswordService : IUserPasswordService
 {
     private const byte LastHasherVer = 1;
     private const int MinPasswordLength = 6;
+    private const int MaxPasswordLength = 30;
 
     public bool CheckPasswordRequirements(string? password)
     {
-        if (password == null)
+        if (string.IsNullOrEmpty(password) || password.Contains(' '))
             return false;
-        if (password.Length < MinPasswordLength)
+        if (password.Length is < MinPasswordLength or > MaxPasswordLength)
             return false;
-        if (password.Contains(' '))
-            return false;
-
         return true;
     }
 
@@ -38,7 +36,7 @@ public class UserPasswordService : IUserPasswordService
         return CreatePasswordHashV1(password);
     }
 
-    private string CreatePasswordHashV1(string password, string? salt = null)
+    private static string CreatePasswordHashV1(string password, string? salt = null)
     {
         byte[] saltBytes = salt == null
             ? RandomNumberGenerator.GetBytes(128 / 8)

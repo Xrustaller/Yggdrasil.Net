@@ -29,7 +29,6 @@
 
     <ItemGroup>
         <Folder Include="Automapper\"/>
-        <Folder Include="Models\ServiceServer\" />
     </ItemGroup>
 
 </Project>

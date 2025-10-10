@@ -11,6 +11,7 @@ using ArkProjects.Minecraft.YggdrasilApi.Models;
 using ArkProjects.Minecraft.YggdrasilApi.Options;
 using ArkProjects.Minecraft.YggdrasilApi.Services;
 using ArkProjects.Minecraft.YggdrasilApi.Services.Server;
+using ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 using ArkProjects.Minecraft.YggdrasilApi.Services.User;
 using ArkProjects.Minecraft.YggdrasilApi.Services.UserPassword;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -32,13 +33,13 @@ builder.Host.AddRbSerilog();
 builder.Services
     .AddSingleton<IUserPasswordService, UserPasswordService>()
     .AddScoped<IYgServerService, YgServerService>()
-    .AddScoped<IYgUserService, YgUserService>();
+    .AddScoped<IYgUserService, YgUserService>()
+    .AddScoped<IServiceServerService, ServiceServerService>()
+    .AddScoped<IServiceUsersService, ServiceUsersService>();
 
 //security
 WebSecurityOptions securityOptions = builder.Configuration.GetSection("WebSecurity").Get<WebSecurityOptions>()!;
-builder.Services
-    .Configure<WebSecurityOptions>(builder.Configuration.GetSection("WebSecurity"))
-    ;
+builder.Services.Configure<WebSecurityOptions>(builder.Configuration.GetSection("WebSecurity"));
 
 NpgsqlConnectionStringBuilder csb = new()
 {
@@ -79,8 +80,7 @@ builder.Services
     {
         string xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-    })
-    ;
+    });
 
 //#########################################################################
 
@@ -96,7 +96,7 @@ if (securityOptions.EnableForwardedHeaders)
         ForwardLimit = 10,
         RequireHeaderSymmetry = false
     };
-    forwardOptions.KnownNetworks.Clear();
+    forwardOptions.KnownIPNetworks.Clear();
     forwardOptions.KnownProxies.Clear();
     app.UseForwardedHeaders(forwardOptions);
 }

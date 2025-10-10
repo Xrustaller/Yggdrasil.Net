@@ -1,33 +1,65 @@
 ﻿using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using ArkProjects.Minecraft.AspShared.EntityFramework;
 using ArkProjects.Minecraft.Database;
 using ArkProjects.Minecraft.Database.Entities;
 using ArkProjects.Minecraft.Database.Entities.Users;
+using ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 using ArkProjects.Minecraft.YggdrasilApi.Services.UserPassword;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services;
 
-public class McDbContextSeeder : IDbSeeder<McDbContext>
+public class McDbContextSeeder(
+    ILogger<McDbContextSeeder> logger, 
+    IUserPasswordService passwordService) : IDbSeeder<McDbContext>
 {
-    private readonly ILogger<McDbContextSeeder> _logger;
-    private readonly IUserPasswordService _passwordService;
-
-    public McDbContextSeeder(ILogger<McDbContextSeeder> logger, IUserPasswordService passwordService)
+    public async Task SeedAsync(McDbContext context, CancellationToken ct = default)
     {
-        _logger = logger;
-        _passwordService = passwordService;
-    }
-
-    public async Task SeedAsync(McDbContext db, CancellationToken ct = default)
-    {
-        if (!await db.Servers.AnyAsync(ct))
+        if (!await context.Services.AnyAsync(ct))
         {
-            _logger.LogInformation("Create default server");
+            logger.LogInformation("Create default service");
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            byte[] randomBytes = new byte[32];
+            rng.GetBytes(randomBytes);
+
+            string guidPart = Guid.NewGuid().ToString("N");
+            string timePart = Convert.ToHexString(BitConverter.GetBytes(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+
+            string base64 = Convert.ToBase64String(randomBytes)
+                .Replace("=", "")
+                .Replace("+", "")
+                .Replace("/", "");
+
+            string hashInput = $"{guidPart}{timePart}{base64}";
+            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(hashInput));
+
+            string secretRaw = Convert.ToBase64String(hash)
+                .Replace("=", "")
+                .Replace("+", "")
+                .Replace("/", "");
+            
+            int length = Math.Min(48, secretRaw.Length);
+            string secret = secretRaw[..length];
+            
+            ServiceEntity service = new()
+            {
+                Name = "admin_service",
+                Secret = secret,
+                CreateOtherService = true
+            };
+
+            context.Services.Add(service);
+            await context.SaveChangesAsync(ct);
+        }
+        
+        if (!await context.Servers.AnyAsync(ct))
+        {
+            logger.LogInformation("Create default server");
             RSA rsaKey = RSA.Create(4096);
 
-            string ygDomain = "yggdrasil-dev.sv1.in.arkprojects.space";
+            const string ygDomain = "yggdrasil-dev.sv1.in.arkprojects.space";
             CertificateRequest certReq = new($"CN={ygDomain}", rsaKey, HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
             X509Certificate2 cert = certReq.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(10));
@@ -40,35 +72,33 @@ public class McDbContextSeeder : IDbSeeder<McDbContext>
                 RegisterUrl = "https://yggdrasil.sv1.in.arkprojects.space/register",
                 YgDomain = ygDomain,
                 Default = true,
-                SkinDomains = new List<string> { ygDomain },
-                UploadableTextures = new List<string> { "CAPE", "SKIN" },
+                SkinDomains = [ygDomain],
+                UploadableTextures = ["CAPE", "SKIN"],
                 PfxCert = pfxCert,
                 CreatedAt = DateTimeOffset.UtcNow
             };
-            db.Servers.Add(server);
-            await db.SaveChangesAsync(CancellationToken.None);
+            context.Servers.Add(server);
+            await context.SaveChangesAsync(CancellationToken.None);
         }
 
         //users
-        if (!await db.Users.AnyAsync(ct))
+        if (!await context.Users.AnyAsync(ct))
         {
-            _logger.LogInformation("Create admin user");
-            string login = "admin";
-            string email = "admin@test.com";
+            logger.LogInformation("Create admin user");
+            const string login = "admin";
+            const string email = "admin@test.com";
             Guid guid = Guid.NewGuid();
             string password = guid.ToString();
             UserEntity user = new()
             {
-                Guid = guid,
+                Id = guid,
                 Login = login,
-                LoginNormalized = login.Normalize().ToUpper(),
                 Email = email,
-                EmailNormalized = email.Normalize().ToUpper(),
-                PasswordHash = _passwordService.CreatePasswordHash(password),
+                PasswordHash = passwordService.CreatePasswordHash(password),
                 CreatedAt = DateTimeOffset.UtcNow
             };
-            db.Users.Add(user);
-            await db.SaveChangesAsync(CancellationToken.None);
+            context.Users.Add(user);
+            await context.SaveChangesAsync(CancellationToken.None);
         }
     }
 }

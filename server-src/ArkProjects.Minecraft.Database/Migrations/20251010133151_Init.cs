@@ -55,6 +55,19 @@ namespace ArkProjects.Minecraft.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Services",
+                columns: table => new
+                {
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Secret = table.Column<string>(type: "text", nullable: false),
+                    CreateOtherService = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Services", x => x.Name);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TempCodes",
                 columns: table => new
                 {
@@ -77,9 +90,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                 name: "Textures",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Texture = table.Column<string>(type: "text", nullable: false),
                     File = table.Column<byte[]>(type: "bytea", nullable: false),
                     Sha256 = table.Column<byte[]>(type: "bytea", nullable: false)
@@ -93,14 +104,10 @@ namespace ArkProjects.Minecraft.Database.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Guid = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    LoginNormalized = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Login = table.Column<string>(type: "text", nullable: false),
-                    EmailNormalized = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
@@ -121,7 +128,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     ExpiredAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     MustBeRefreshedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -152,7 +159,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     SkinFileUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -226,15 +233,15 @@ namespace ArkProjects.Minecraft.Database.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Guid",
+                name: "IX_Users_Id",
                 table: "Users",
-                column: "Guid",
+                column: "Id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_LoginNormalized_DeletedAt",
+                name: "IX_Users_Login_DeletedAt",
                 table: "Users",
-                columns: new[] { "LoginNormalized", "DeletedAt" },
+                columns: new[] { "Login", "DeletedAt" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -248,6 +255,9 @@ namespace ArkProjects.Minecraft.Database.Migrations
         {
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "Services");
 
             migrationBuilder.DropTable(
                 name: "TempCodes");

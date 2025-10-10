@@ -16,7 +16,7 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ApiController]
 [Route("sessionserver/session/minecraft")]
 public class SessionServerController(
-    ILogger<SessionServerController> logger,
+    //ILogger<SessionServerController> logger,
     IYgUserService userService,
     IJsonHelper jsonHelper,
     IYgServerService serverService)
@@ -80,8 +80,8 @@ public class SessionServerController(
             ProfileActions = [],
             Properties =
             [
-                new ProfileResponse.PropertyModel(KnownProfileProperties.Textures, extProfileB64, req.Unsigned 
-                    ? null 
+                new ProfileResponse.PropertyModel(KnownProfileProperties.Textures, extProfileB64, req.Unsigned
+                    ? null
                     : GetSign(X509CertificateLoader.LoadCertificate(server!.PfxCert), extProfileB64)),
                 new ProfileResponse.PropertyModel(KnownProfileProperties.UploadableTextures,
                     string.Join(',', server!.UploadableTextures ?? []), null)

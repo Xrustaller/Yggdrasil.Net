@@ -1,7 +1,10 @@
-﻿namespace ArkProjects.Minecraft.Database.Entities.Users;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ArkProjects.Minecraft.Database.Entities.Users;
 
 public class RefreshTokenEntity
 {
+    [Key]
     public long Id { get; set; }
     public required string Token { get; set; }
 

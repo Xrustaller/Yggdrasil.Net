@@ -5,13 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ArkProjects.Minecraft.Database;
 
-public class McDbContext : DbContext
+public class McDbContext(DbContextOptions<McDbContext> options) : DbContext(options)
 {
-    public McDbContext(DbContextOptions<McDbContext> options) : base(options)
-    {
-    }
-
-    //auth
     public DbSet<RefreshTokenEntity> RefreshTokens { get; set; } = null!;
     public DbSet<UserEntity> Users { get; set; } = null!;
     public DbSet<UserAccessTokenEntity> UserAccessTokens { get; set; } = null!;
@@ -20,8 +15,10 @@ public class McDbContext : DbContext
     public DbSet<UserServerJoinEntity> UserServerJoins { get; set; } = null!;
     public DbSet<TextureEntity> Textures { get; set; } = null!;
 
-
     public DbSet<ServerEntity> Servers { get; set; } = null!;
+
+
+    public DbSet<ServiceEntity> Services { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

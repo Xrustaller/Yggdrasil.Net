@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArkProjects.Minecraft.Database.Migrations
 {
     [DbContext(typeof(McDbContext))]
-    [Migration("20251007210502_Init")]
+    [Migration("20251010133151_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -75,6 +75,23 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("Servers");
+                });
+
+            modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.ServiceEntity", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("CreateOtherService")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.RefreshTokenEntity", b =>
@@ -153,11 +170,9 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Users.UserEntity", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -169,18 +184,7 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("EmailNormalized")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("Guid")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Login")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LoginNormalized")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -190,10 +194,10 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Guid")
+                    b.HasIndex("Id")
                         .IsUnique();
 
-                    b.HasIndex("LoginNormalized", "DeletedAt")
+                    b.HasIndex("Login", "DeletedAt")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -201,18 +205,13 @@ namespace ArkProjects.Minecraft.Database.Migrations
 
             modelBuilder.Entity("ArkProjects.Minecraft.Database.Entities.Yg.TextureEntity", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<byte[]>("File")
                         .IsRequired()
                         .HasColumnType("bytea");
-
-                    b.Property<Guid>("Guid")
-                        .HasColumnType("uuid");
 
                     b.Property<byte[]>("Sha256")
                         .IsRequired()
@@ -255,8 +254,8 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     b.Property<long>("ServerId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -294,8 +293,8 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     b.Property<string>("SkinFileUrl")
                         .HasColumnType("text");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

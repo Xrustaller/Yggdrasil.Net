@@ -17,7 +17,7 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ApiController]
 [Route("/api/user/profile")]
 public class UserProfileController(
-    ILogger<UserProfileController> logger,
+    //ILogger<UserProfileController> logger,
     IYgServerService serverService,
     IYgUserService userService,
     McDbContext db)
@@ -57,12 +57,12 @@ public class UserProfileController(
         TextureEntity textureEntity = new()
         {
             File = imageBytes,
-            Guid = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Sha256 = sha256,
             Texture = texture
         };
         db.Textures.Add(textureEntity);
-        string url = $"https://{server!.YgDomain}/api/texture/{textureEntity.Guid}";
+        string url = $"https://{server!.YgDomain}/api/texture/{textureEntity.Id}";
         UserProfileEntity userProfileEntity = await db.UserProfiles.SingleAsync(x => x.Guid == req.UserId, ct);
         switch (textureEntity.Texture)
         {
@@ -82,7 +82,7 @@ public class UserProfileController(
         using Stream stream = file.OpenReadStream();
         byte[] bytes = new byte[file.Length];
         int read = stream.Read(bytes);
-        if (read != bytes.Length) 
+        if (read != bytes.Length)
             throw new Exception("Cant read full img to mem");
 
         return bytes;

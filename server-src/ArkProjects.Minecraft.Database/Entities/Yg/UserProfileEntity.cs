@@ -1,4 +1,5 @@
-﻿using ArkProjects.Minecraft.Database.Entities.Users;
+﻿using System.ComponentModel.DataAnnotations;
+using ArkProjects.Minecraft.Database.Entities.Users;
 
 namespace ArkProjects.Minecraft.Database.Entities.Yg;
 
@@ -17,6 +18,6 @@ public class UserProfileEntity
     public long ServerId { get; set; }
     public ServerEntity? Server { get; set; }
 
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
     public UserEntity? User { get; set; }
 }

@@ -15,5 +15,5 @@ public class ServerMetadataModel
     [JsonPropertyName("feature.non_email_login")]
     public bool FeatureNonEmailLogin { get; set; }
 
-    [JsonPropertyName("links")] public ServerMetadataLinksModel Links { get; set; }
+    [JsonPropertyName("links")] public ServerMetadataLinksModel Links { get; set; } = null!;
 }

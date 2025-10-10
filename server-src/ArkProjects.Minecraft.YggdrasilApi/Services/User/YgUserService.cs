@@ -43,7 +43,7 @@ public class YgUserService(McDbContext db) : IYgUserService
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
         UserEntity user = await db.Users
-            .Where(x => x.DeletedAt == null && x.Guid == userGuid)
+            .Where(x => x.DeletedAt == null && x.Id == userGuid)
             .FirstAsync(ct);
         ServerEntity server = await db.Servers
             .Where(x => x.DeletedAt == null && x.YgDomain == domain)
@@ -102,7 +102,7 @@ public class YgUserService(McDbContext db) : IYgUserService
         DateTimeOffset now = DateTimeOffset.UtcNow;
         UserAccessTokenEntity tokenEntity = await db.UserAccessTokens
             .Where(x =>
-                x.User!.Guid == userGuid &&
+                x.User!.Id == userGuid &&
                 x.User!.DeletedAt == null &&
                 x.AccessToken == accessToken &&
                 x.ExpiredAt > now &&
@@ -118,7 +118,7 @@ public class YgUserService(McDbContext db) : IYgUserService
         DateTimeOffset now = DateTimeOffset.UtcNow;
         UserAccessTokenEntity[] tokenEntities = await db.UserAccessTokens
             .Where(x =>
-                x.User!.Guid == userGuid &&
+                x.User!.Id == userGuid &&
                 x.User!.DeletedAt == null &&
                 x.ExpiredAt > now &&
                 x.Server!.YgDomain == domain)

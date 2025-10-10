@@ -8,7 +8,7 @@ public class UserConfigurator : IEntityTypeConfiguration<UserEntity>
 {
     public void Configure(EntityTypeBuilder<UserEntity> builder)
     {
-        builder.HasIndex(x => new { x.Guid }).IsUnique();
-        builder.HasIndex(x => new { x.LoginNormalized, x.DeletedAt }).IsUnique();
+        builder.HasIndex(x => new { Guid = x.Id }).IsUnique();
+        builder.HasIndex(x => new { x.Login, x.DeletedAt }).IsUnique();
     }
 }

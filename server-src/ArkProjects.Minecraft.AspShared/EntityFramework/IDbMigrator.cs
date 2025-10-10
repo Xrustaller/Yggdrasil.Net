@@ -10,7 +10,7 @@ public interface IDbMigrator
     Task SeedAsync(CancellationToken ct = default);
 }
 
-public interface IDbMigrator<T> : IDbMigrator where T : DbContext
+public interface IDbMigrator<out T> : IDbMigrator where T : DbContext
 {
     public new T DbContext { get; }
 }

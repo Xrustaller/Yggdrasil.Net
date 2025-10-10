@@ -1,7 +1,10 @@
-﻿namespace ArkProjects.Minecraft.Database.Entities.Yg;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ArkProjects.Minecraft.Database.Entities.Yg;
 
 public class UserServerJoinEntity
 {
+    [Key]
     public long Id { get; set; }
 
     public required DateTimeOffset CreatedAt { get; set; }

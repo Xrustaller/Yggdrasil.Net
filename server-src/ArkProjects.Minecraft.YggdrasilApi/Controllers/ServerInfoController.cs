@@ -10,7 +10,10 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 
 [ApiController]
 [Route("/")]
-public class ServerInfoController(ILogger<ServerInfoController> logger, IYgServerService serverService, IOptions<ServerNodeOptions> options) : ControllerBase
+public class ServerInfoController(
+    //ILogger<ServerInfoController> logger, 
+    IYgServerService serverService,
+    IOptions<ServerNodeOptions> options) : ControllerBase
 {
     private readonly ServerNodeOptions _options = options.Value;
 
@@ -19,7 +22,7 @@ public class ServerInfoController(ILogger<ServerInfoController> logger, IYgServe
     {
         string domain = HttpContext.Request.Host.Host;
         ServerEntity? info = await serverService.GetServerInfoAsync(domain, true, ct);
-        
+
         return new ServerInfoModel
         {
             SkinDomains = info!.SkinDomains,

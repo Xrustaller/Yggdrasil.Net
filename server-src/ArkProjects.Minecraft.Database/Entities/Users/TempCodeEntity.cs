@@ -1,7 +1,10 @@
-﻿namespace ArkProjects.Minecraft.Database.Entities.Users;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ArkProjects.Minecraft.Database.Entities.Users;
 
 public class TempCodeEntity
 {
+    [Key]
     public long Id { get; set; }
     public string Key { get; set; } = null!;
     public string Code { get; set; } = null!;

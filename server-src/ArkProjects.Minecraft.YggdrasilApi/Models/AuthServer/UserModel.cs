@@ -15,7 +15,7 @@ public class UserModel
     {
         return new UserModel
         {
-            Id = user.Guid,
+            Id = user.Id,
             UserName = user.Login,
             Properties = Array.Empty<UserPropertyModel>()
         };

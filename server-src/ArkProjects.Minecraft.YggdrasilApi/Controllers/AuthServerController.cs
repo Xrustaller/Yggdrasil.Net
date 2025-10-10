@@ -11,7 +11,7 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ApiController]
 [Route("authserver")]
 public class AuthServerController(
-    ILogger<AuthServerController> logger,
+    //ILogger<AuthServerController> logger,
     IYgUserService userService,
     IUserPasswordService passwordService) : ControllerBase
 {
@@ -22,13 +22,13 @@ public class AuthServerController(
         UserEntity? user = await userService.GetUserByLoginOrEmailAsync(req.LoginOrEmail, domain, ct);
         if (user == null || !passwordService.Validate(req.Password, user.PasswordHash)) throw new YgServerException(ErrorResponseFactory.InvalidCredentials());
 
-        UserProfileEntity? profile = await userService.GetUserProfileByGuidAsync(user.Guid, domain, ct);
+        UserProfileEntity? profile = await userService.GetUserProfileByGuidAsync(user.Id, domain, ct);
         if (profile == null) throw new YgServerException(ErrorResponseFactory.Custom(400, "PROFILE_NOT_EXIST", "Profile not exist"));
 
         UserProfileModel profileModel = UserProfileModel.Map(profile);
 
         string clientToken = req.ClientToken ?? Guid.NewGuid().ToString("N");
-        string accessToken = await userService.CreateAccessTokenAsync(clientToken, user.Guid, domain, ct);
+        string accessToken = await userService.CreateAccessTokenAsync(clientToken, user.Id, domain, ct);
 
         return new AuthenticateResponse
         {
@@ -39,7 +39,7 @@ public class AuthServerController(
             User = req.RequestUser
                 ? new UserModel
                 {
-                    Id = user.Guid,
+                    Id = user.Id,
                     UserName = user.Login,
                     Properties = []
                 }
@@ -56,11 +56,11 @@ public class AuthServerController(
             throw new YgServerException(ErrorResponseFactory.InvalidToken());
 
         UserEntity? user = await userService.GetUserByAccessTokenAsync(req.AccessToken, domain, ct);
-        UserProfileEntity? profile = await userService.GetUserProfileByGuidAsync(user!.Guid, domain, ct);
-        string newAccessToken = await userService.CreateAccessTokenAsync(req.ClientToken, user.Guid, domain, ct);
+        UserProfileEntity? profile = await userService.GetUserProfileByGuidAsync(user!.Id, domain, ct);
+        string newAccessToken = await userService.CreateAccessTokenAsync(req.ClientToken, user.Id, domain, ct);
 
         // исправлено: инвалидируем старый токен, а не новый
-        await userService.InvalidateAccessTokenAsync(user.Guid, req.AccessToken, domain, ct);
+        await userService.InvalidateAccessTokenAsync(user.Id, req.AccessToken, domain, ct);
 
         return new RefreshResponse
         {
@@ -95,7 +95,7 @@ public class AuthServerController(
             throw new YgServerException(ErrorResponseFactory.InvalidToken());
 
         // инвалидируем конкретный accessToken
-        await userService.InvalidateAccessTokenAsync(user.Guid, req.AccessToken, domain, ct);
+        await userService.InvalidateAccessTokenAsync(user.Id, req.AccessToken, domain, ct);
 
         // выставляем 204
         Response.StatusCode = 204;
@@ -116,7 +116,7 @@ public class AuthServerController(
             throw new YgServerException(ErrorResponseFactory.InvalidCredentials());
 
         // инвалидируем все токены пользователя
-        await userService.InvalidateAllAccessTokensAsync(user.Guid, domain, ct);
+        await userService.InvalidateAllAccessTokensAsync(user.Id, domain, ct);
 
         // выставляем 204
         Response.StatusCode = 204;
