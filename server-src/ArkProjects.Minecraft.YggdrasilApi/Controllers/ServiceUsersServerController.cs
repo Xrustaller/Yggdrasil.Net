@@ -14,7 +14,6 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ServiceAuth]
 public class ServiceUsersServerController(
     ILogger<ServiceUsersServerController> logger,
-    IDbContextFactory<McDbContext> contextFactory,
     IServiceUsersService usersService,
     IUserPasswordService passwordService) : ControllerBase
 {
@@ -51,7 +50,6 @@ public class ServiceUsersServerController(
     [HttpDelete("{userId:guid}")]
     public async Task<ActionResult> Remove([FromRoute] Guid userId, CancellationToken ct = default)
     {
-        await using McDbContext context = await contextFactory.CreateDbContextAsync(ct);
         if (!await usersService.DeleteUserAsync(userId, ct))
             return NotFound(new { detail = "User not found" });
         logger.LogInformation($"Deleted user {userId}");
@@ -71,7 +69,7 @@ public class ServiceUsersServerController(
         if (!string.IsNullOrWhiteSpace(req.Email))
         {
             if (await usersService.CheckEmailExistAsync(req.Email, ct))
-                return Conflict(new { detail = "Email already used by another user" });
+                return Conflict(new { detail = "Email already used" });
             newEmail = req.Email;
         }
 
@@ -82,7 +80,7 @@ public class ServiceUsersServerController(
             newPassword = passwordService.CreatePasswordHash(req.Password);
         }
 
-        UserEntity? user = await usersService.UpdateUserAsync(userId, newLogin, newEmail, newPassword, ct);
+        UserEntity? user = await usersService.UpdateUserAsync(userId, newLogin, newEmail, newPassword, req.SetDelete, ct);
         if (user == null)
             return NotFound(new { detail = "User not found" });
 

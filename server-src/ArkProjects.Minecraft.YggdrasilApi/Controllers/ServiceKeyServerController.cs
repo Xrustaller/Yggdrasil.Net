@@ -1,4 +1,7 @@
-﻿using ArkProjects.Minecraft.Database;
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Serialization;
+using ArkProjects.Minecraft.Database;
 using ArkProjects.Minecraft.Database.Entities;
 using ArkProjects.Minecraft.YggdrasilApi.Filters;
 using ArkProjects.Minecraft.YggdrasilApi.Models.ServiceServer;
@@ -13,9 +16,30 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ServiceAuth(RequireCreateOtherService = true)]
 public class ServiceKeyServerController(
     ILogger<ServiceKeyServerController> logger,
-    IDbContextFactory<McDbContext> contextFactory,
     IServiceServerService servicesService) : ControllerBase
 {
+    //[HttpPost("calc/{serviceName}")]
+    //public async Task<IActionResult> Calc([FromRoute]string serviceName, [FromBody] CalcBody body, CancellationToken ct = default)
+    //{
+    //    long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    //    string timestamp = ts.ToString();
+    //    string payload = $"{serviceName}:{timestamp}";
+    //    using HMACSHA256 hmac = new(Convert.FromBase64String(body.Secret));
+    //    string signature = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
+    //    Dictionary<string, string> result = new()
+    //    {
+    //        {"X-Service-Name", serviceName},
+    //        {"X-Timestamp", timestamp},
+    //        {"X-Signature", signature}
+    //    };
+    //    return Ok(result);
+    //}
+    //public class CalcBody()
+    //{
+    //    [JsonPropertyName("secret")]
+    //    public string Secret { get; set; }
+    //}
+    
     [HttpGet]
     public async Task<ActionResult<List<ServiceEntity>>> GetList(CancellationToken ct = default)
     {
@@ -36,12 +60,12 @@ public class ServiceKeyServerController(
     {
         if (string.IsNullOrWhiteSpace(req.Name))
             return BadRequest(new { detail = "Service name required" });
-
-        await using McDbContext context = await contextFactory.CreateDbContextAsync(ct);
-        if (await context.Services.AnyAsync(x => x.Name == req.Name, ct))
+        
+        ServiceEntity? service = await servicesService.CreateServiceAsync(req.Name, req.CreateOtherService, ct);
+        
+        if (service == null)
             return Conflict(new { detail = "Service already exists" });
-
-        ServiceEntity service = await servicesService.CreateServiceAsync(req.Name, req.CreateOtherService, ct);
+        
         logger.LogInformation($"Created new service {req.Name}");
         return Created($"service/key/{service.Name}", service);
     }
@@ -49,7 +73,6 @@ public class ServiceKeyServerController(
     [HttpDelete("{serviceName}")]
     public async Task<ActionResult> Remove([FromRoute] string serviceName, CancellationToken ct = default)
     {
-        await using McDbContext context = await contextFactory.CreateDbContextAsync(ct);
         if (!await servicesService.DeleteServiceAsync(serviceName, ct))
             return NotFound(new { detail = "Service not found" });
         logger.LogInformation($"Deleted service {serviceName}");

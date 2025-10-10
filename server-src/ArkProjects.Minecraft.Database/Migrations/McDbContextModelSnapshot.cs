@@ -181,7 +181,15 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EmailNormalized")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Login")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoginNormalized")
                         .IsRequired()
                         .HasColumnType("text");
 

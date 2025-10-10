@@ -24,17 +24,18 @@ public class ServiceUsersService(
 
     public async Task<bool> CheckEmailExistAsync(string email, CancellationToken ct)
     {
-        return await
-            context.Users.AnyAsync(u => u.EmailNormalized.Equals(email.Normalize(), StringComparison.CurrentCultureIgnoreCase), ct);
+        return await context.Users.AnyAsync(u => u.EmailNormalized == email.Normalize().ToUpper(), ct);
     }
 
-    public async Task<UserEntity> AddUserAsync(string username, string email, string password, CancellationToken ct)
+    public async Task<UserEntity> AddUserAsync(string login, string email, string password, CancellationToken ct)
     {
         UserEntity user = new()
         {
             Id = Guid.NewGuid(),
-            Login = username,
+            Login = login,
             Email = email,
+            LoginNormalized = login.Normalize().ToUpper(),
+            EmailNormalized = email.Normalize().ToUpper(),
             PasswordHash = passwordService.CreatePasswordHash(password),
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -54,17 +55,29 @@ public class ServiceUsersService(
         return true;
     }
 
-    public async Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, CancellationToken ct)
+    public async Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, bool setDelete, CancellationToken ct)
     {
         UserEntity? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null)
             return null;
+        
         if (!string.IsNullOrEmpty(newLogin))
+        {
             user.Login = newLogin;
+            user.LoginNormalized = newLogin.Normalize().ToUpper();
+        }
+        
         if (!string.IsNullOrEmpty(newEmail))
+        {
             user.Email = newEmail;
+            user.EmailNormalized = newEmail.Normalize().ToUpper();
+        }
+        
         if (!string.IsNullOrEmpty(newPasswordHash))
             user.PasswordHash = newPasswordHash;
+
+        user.DeletedAt = setDelete ? DateTimeOffset.UtcNow : null;
+
         context.Users.Update(user);
         await context.SaveChangesAsync(ct);
         return user;

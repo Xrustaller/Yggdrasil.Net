@@ -115,12 +115,12 @@ app.Use(async (context, next) =>
                 StatusCodes.Status500InternalServerError,
                 ErrorResponseFactory.ErrorInternalServerError,
                 e.ToString());
-        IJsonHelper jsonHelper = context.RequestServices.GetRequiredService<IJsonHelper>();
+        
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = err.StatusCode;
-        Stream respStream = context.Response.BodyWriter.AsStream();
-        await using StreamWriter textWriter = new(respStream);
-        jsonHelper.Serialize(err).WriteTo(textWriter, HtmlEncoder.Default);
+        
+        string json = JsonSerializer.Serialize(err);
+        await context.Response.WriteAsync(json);
     }
 });
 

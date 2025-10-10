@@ -14,9 +14,7 @@ public class UserEntity : IEntityWithDeletingFlag
     public required string PasswordHash { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     
-    [NotMapped] 
-    public string LoginNormalized => Login.Normalize().ToUpper();
-    
-    [NotMapped] 
-    public string EmailNormalized => Email.Normalize().ToUpper();
+    public string LoginNormalized { get; set; }
+    public string EmailNormalized { get; set; }
+
 }

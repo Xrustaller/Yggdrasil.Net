@@ -9,4 +9,6 @@ public class UserPutRequest
     [JsonPropertyName("email")] public string Email { get; set; } = null!;
 
     [JsonPropertyName("password")] public string Password { get; set; } = null!;
+    
+    [JsonPropertyName("set_delete")] public bool SetDelete { get; set; } = false!;
 }

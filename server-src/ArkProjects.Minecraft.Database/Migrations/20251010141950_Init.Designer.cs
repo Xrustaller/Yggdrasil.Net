@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArkProjects.Minecraft.Database.Migrations
 {
     [DbContext(typeof(McDbContext))]
-    [Migration("20251010133151_Init")]
+    [Migration("20251010141950_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -184,7 +184,15 @@ namespace ArkProjects.Minecraft.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EmailNormalized")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Login")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoginNormalized")
                         .IsRequired()
                         .HasColumnType("text");
 

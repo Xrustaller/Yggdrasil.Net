@@ -20,28 +20,12 @@ public class McDbContextSeeder(
         if (!await context.Services.AnyAsync(ct))
         {
             logger.LogInformation("Create default service");
-            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
-            byte[] randomBytes = new byte[32];
-            rng.GetBytes(randomBytes);
-
-            string guidPart = Guid.NewGuid().ToString("N");
-            string timePart = Convert.ToHexString(BitConverter.GetBytes(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
-
-            string base64 = Convert.ToBase64String(randomBytes)
-                .Replace("=", "")
-                .Replace("+", "")
-                .Replace("/", "");
-
-            string hashInput = $"{guidPart}{timePart}{base64}";
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(hashInput));
-
-            string secretRaw = Convert.ToBase64String(hash)
-                .Replace("=", "")
-                .Replace("+", "")
-                .Replace("/", "");
             
-            int length = Math.Min(48, secretRaw.Length);
-            string secret = secretRaw[..length];
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            byte[] keyBytes = new byte[32];
+            rng.GetBytes(keyBytes);
+
+            string secret = Convert.ToBase64String(keyBytes);
             
             ServiceEntity service = new()
             {
@@ -94,6 +78,8 @@ public class McDbContextSeeder(
                 Id = guid,
                 Login = login,
                 Email = email,
+                LoginNormalized = login.Normalize().ToUpper(),
+                EmailNormalized = email.Normalize().ToUpper(),
                 PasswordHash = passwordService.CreatePasswordHash(password),
                 CreatedAt = DateTimeOffset.UtcNow
             };

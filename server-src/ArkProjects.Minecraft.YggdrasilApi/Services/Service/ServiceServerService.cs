@@ -18,8 +18,11 @@ public class ServiceServerService(McDbContext context) : IServiceServerService
         return await context.Services.FirstOrDefaultAsync(x => x.Name == serviceName, ct);
     }
 
-    public async Task<ServiceEntity> CreateServiceAsync(string name, bool createOtherService = false, CancellationToken ct = default)
+    public async Task<ServiceEntity?> CreateServiceAsync(string name, bool createOtherService = false, CancellationToken ct = default)
     {
+        if (await context.Services.AnyAsync(x => x.Name == name, ct))
+            return null;
+        
         string secret = GenerateSecret();
         ServiceEntity service = new()
         {
@@ -60,26 +63,8 @@ public class ServiceServerService(McDbContext context) : IServiceServerService
     private static string GenerateSecret()
     {
         using RandomNumberGenerator rng = RandomNumberGenerator.Create();
-        byte[] randomBytes = new byte[32];
-        rng.GetBytes(randomBytes);
-
-        string guidPart = Guid.NewGuid().ToString("N");
-        string timePart = Convert.ToHexString(BitConverter.GetBytes(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
-
-        string base64 = Convert.ToBase64String(randomBytes)
-            .Replace("=", "")
-            .Replace("+", "")
-            .Replace("/", "");
-
-        string hashInput = $"{guidPart}{timePart}{base64}";
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(hashInput));
-
-        string secretRaw = Convert.ToBase64String(hash)
-            .Replace("=", "")
-            .Replace("+", "")
-            .Replace("/", "");
-            
-        int length = Math.Min(48, secretRaw.Length);
-        return secretRaw[..length];
+        byte[] keyBytes = new byte[32];
+        rng.GetBytes(keyBytes);
+        return Convert.ToBase64String(keyBytes);
     }
 }

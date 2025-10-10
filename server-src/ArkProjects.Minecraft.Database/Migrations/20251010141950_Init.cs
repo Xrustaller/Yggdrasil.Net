@@ -109,7 +109,9 @@ namespace ArkProjects.Minecraft.Database.Migrations
                     Email = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LoginNormalized = table.Column<string>(type: "text", nullable: false),
+                    EmailNormalized = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

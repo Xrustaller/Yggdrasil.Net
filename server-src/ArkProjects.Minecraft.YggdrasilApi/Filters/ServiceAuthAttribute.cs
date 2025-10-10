@@ -15,7 +15,7 @@ public class ServiceAuthAttribute : Attribute, IAsyncActionFilter
     public async Task OnActionExecutionAsync(ActionExecutingContext ctx, ActionExecutionDelegate next)
     {
         IServiceServerService serviceServer = ctx.HttpContext.RequestServices.GetRequiredService<IServiceServerService>();
-        ILogger<ServiceAuthAttribute> logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger<ServiceAuthAttribute>>();
+        //ILogger<ServiceAuthAttribute> logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger<ServiceAuthAttribute>>();
 
         string? serviceName = ctx.HttpContext.Request.Headers["X-Service-Name"].FirstOrDefault();
         string? timestamp = ctx.HttpContext.Request.Headers["X-Timestamp"].FirstOrDefault();
