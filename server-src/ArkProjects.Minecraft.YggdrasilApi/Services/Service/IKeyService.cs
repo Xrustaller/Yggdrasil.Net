@@ -2,7 +2,7 @@
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 
-public interface IServiceServerService
+public interface IKeyService
 {
     Task<List<ServiceEntity>> GetServicesAsync(CancellationToken ct = default);
     Task<ServiceEntity?> GetServiceAsync(string serviceName, CancellationToken ct = default);

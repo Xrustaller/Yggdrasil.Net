@@ -3,7 +3,7 @@ using ArkProjects.Minecraft.YggdrasilApi.Models.ServiceServer;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 
-public interface IServiceUsersService
+public interface IUsersService
 {
     Task<List<UserGetResponse>> GetUsersAsync(CancellationToken ct);
     Task<UserEntity?> GetUserAsync(Guid userId, CancellationToken ct);
@@ -11,5 +11,5 @@ public interface IServiceUsersService
     Task<bool> DeleteUserAsync(Guid userId, CancellationToken ct);
 
     Task<bool> CheckEmailExistAsync(string email, CancellationToken ct);
-    Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, bool setDelete, CancellationToken ct);
+    Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, bool? setDelete, CancellationToken ct);
 }

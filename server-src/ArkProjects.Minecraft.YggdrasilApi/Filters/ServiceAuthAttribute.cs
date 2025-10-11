@@ -14,7 +14,7 @@ public class ServiceAuthAttribute : Attribute, IAsyncActionFilter
 
     public async Task OnActionExecutionAsync(ActionExecutingContext ctx, ActionExecutionDelegate next)
     {
-        IServiceServerService serviceServer = ctx.HttpContext.RequestServices.GetRequiredService<IServiceServerService>();
+        IKeyService keyServiceServer = ctx.HttpContext.RequestServices.GetRequiredService<IKeyService>();
         //ILogger<ServiceAuthAttribute> logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger<ServiceAuthAttribute>>();
 
         string? serviceName = ctx.HttpContext.Request.Headers["X-Service-Name"].FirstOrDefault();
@@ -40,7 +40,7 @@ public class ServiceAuthAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        ServiceEntity? service = await serviceServer.GetServiceAsync(serviceName);
+        ServiceEntity? service = await keyServiceServer.GetServiceAsync(serviceName);
         if (service == null)
         {
             ctx.Result = new UnauthorizedObjectResult("Unknown service");

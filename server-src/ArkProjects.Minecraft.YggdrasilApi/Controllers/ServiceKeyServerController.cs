@@ -16,7 +16,7 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 [ServiceAuth(RequireCreateOtherService = true)]
 public class ServiceKeyServerController(
     ILogger<ServiceKeyServerController> logger,
-    IServiceServerService servicesService) : ControllerBase
+    IKeyService keyService) : ControllerBase
 {
     //[HttpPost("calc/{serviceName}")]
     //public async Task<IActionResult> Calc([FromRoute]string serviceName, [FromBody] CalcBody body, CancellationToken ct = default)
@@ -43,13 +43,13 @@ public class ServiceKeyServerController(
     [HttpGet]
     public async Task<ActionResult<List<ServiceEntity>>> GetList(CancellationToken ct = default)
     {
-        return Ok(await servicesService.GetServicesAsync(ct));
+        return Ok(await keyService.GetServicesAsync(ct));
     }
 
     [HttpGet("{serviceName}")]
     public async Task<ActionResult<ServiceEntity>> Get([FromRoute] string serviceName, CancellationToken ct = default)
     {
-        ServiceEntity? service = await servicesService.GetServiceAsync(serviceName, ct);
+        ServiceEntity? service = await keyService.GetServiceAsync(serviceName, ct);
         if (service == null)
             return NotFound(new { detail = "Service not found" });
         return Ok(service);
@@ -61,7 +61,7 @@ public class ServiceKeyServerController(
         if (string.IsNullOrWhiteSpace(req.Name))
             return BadRequest(new { detail = "Service name required" });
         
-        ServiceEntity? service = await servicesService.CreateServiceAsync(req.Name, req.CreateOtherService, ct);
+        ServiceEntity? service = await keyService.CreateServiceAsync(req.Name, req.CreateOtherService, ct);
         
         if (service == null)
             return Conflict(new { detail = "Service already exists" });
@@ -73,7 +73,7 @@ public class ServiceKeyServerController(
     [HttpDelete("{serviceName}")]
     public async Task<ActionResult> Remove([FromRoute] string serviceName, CancellationToken ct = default)
     {
-        if (!await servicesService.DeleteServiceAsync(serviceName, ct))
+        if (!await keyService.DeleteServiceAsync(serviceName, ct))
             return NotFound(new { detail = "Service not found" });
         logger.LogInformation($"Deleted service {serviceName}");
         return NoContent();
@@ -82,7 +82,7 @@ public class ServiceKeyServerController(
     [HttpPut("{serviceName}")]
     public async Task<ActionResult<ServiceEntity>> Put([FromRoute] string serviceName, [FromBody] ServicePutRequest req, CancellationToken ct = default)
     {
-        ServiceEntity? service = await servicesService.UpdateServiceAsync(serviceName, req.CreateOtherService, ct);
+        ServiceEntity? service = await keyService.UpdateServiceAsync(serviceName, req.CreateOtherService, ct);
         if (service == null)
             return NotFound(new { detail = "Service not found" });
 

@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 
-public class ServiceUsersService(
+public class UsersService(
     McDbContext context,
-    IUserPasswordService passwordService) : IServiceUsersService
+    IUserPasswordService passwordService) : IUsersService
 {
     public async Task<List<UserGetResponse>> GetUsersAsync(CancellationToken ct)
     {
@@ -55,7 +55,7 @@ public class ServiceUsersService(
         return true;
     }
 
-    public async Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, bool setDelete, CancellationToken ct)
+    public async Task<UserEntity?> UpdateUserAsync(Guid userId, string? newLogin, string? newEmail, string? newPasswordHash, bool? setDelete, CancellationToken ct)
     {
         UserEntity? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null)
@@ -76,7 +76,10 @@ public class ServiceUsersService(
         if (!string.IsNullOrEmpty(newPasswordHash))
             user.PasswordHash = newPasswordHash;
 
-        user.DeletedAt = setDelete ? DateTimeOffset.UtcNow : null;
+        if (setDelete == true)
+            user.DeletedAt = DateTimeOffset.UtcNow;
+        else if (setDelete == false)
+            user.DeletedAt = null;
 
         context.Users.Update(user);
         await context.SaveChangesAsync(ct);

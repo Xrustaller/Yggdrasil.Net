@@ -11,10 +11,10 @@ namespace ArkProjects.Minecraft.YggdrasilApi.Controllers;
 
 [ApiController]
 [Route("service/users")]
-[ServiceAuth]
+//[ServiceAuth]
 public class ServiceUsersServerController(
     ILogger<ServiceUsersServerController> logger,
-    IServiceUsersService usersService,
+    IUsersService usersService,
     IUserPasswordService passwordService) : ControllerBase
 {
     [HttpGet]

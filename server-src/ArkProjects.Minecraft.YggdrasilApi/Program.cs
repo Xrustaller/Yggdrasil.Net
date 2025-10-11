@@ -34,8 +34,8 @@ builder.Services
     .AddSingleton<IUserPasswordService, UserPasswordService>()
     .AddScoped<IYgServerService, YgServerService>()
     .AddScoped<IYgUserService, YgUserService>()
-    .AddScoped<IServiceServerService, ServiceServerService>()
-    .AddScoped<IServiceUsersService, ServiceUsersService>();
+    .AddScoped<IKeyService, KeyService>()
+    .AddScoped<IUsersService, UsersService>();
 
 //security
 WebSecurityOptions securityOptions = builder.Configuration.GetSection("WebSecurity").Get<WebSecurityOptions>()!;

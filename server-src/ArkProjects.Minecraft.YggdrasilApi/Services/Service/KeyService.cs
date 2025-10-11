@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ArkProjects.Minecraft.YggdrasilApi.Services.Service;
 
-public class ServiceServerService(McDbContext context) : IServiceServerService
+public class KeyService(McDbContext context) : IKeyService
 {
     public async Task<List<ServiceEntity>> GetServicesAsync(CancellationToken ct = default)
     {

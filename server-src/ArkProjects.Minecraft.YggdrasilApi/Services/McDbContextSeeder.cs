@@ -36,6 +36,17 @@ public class McDbContextSeeder(
 
             context.Services.Add(service);
             await context.SaveChangesAsync(ct);
+            
+            try
+            {
+                string path = Path.Combine(AppContext.BaseDirectory, "admin_service.key");
+                await File.WriteAllTextAsync(path, secret, ct);
+                logger.LogInformation($"Default service key written to {path}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Failed to write service key file: {ex.Message}");
+            }
         }
         
         if (!await context.Servers.AnyAsync(ct))

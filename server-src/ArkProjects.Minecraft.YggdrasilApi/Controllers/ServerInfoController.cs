@@ -26,7 +26,9 @@ public class ServerInfoController(
         return new ServerInfoModel
         {
             SkinDomains = info!.SkinDomains,
-            SignaturePublicKey = X509CertificateLoader.LoadCertificate(info.PfxCert).GetRSAPrivateKey()!.ExportSubjectPublicKeyInfoPem(),
+            SignaturePublicKey = X509CertificateLoader.LoadPkcs12(info.PfxCert, null)
+                .GetRSAPrivateKey()!
+                .ExportSubjectPublicKeyInfoPem(),
             Meta = new ServerMetadataModel
             {
                 ServerName = info.Name,
